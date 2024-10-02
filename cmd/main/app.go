@@ -1,11 +1,14 @@
 package main
 
 import (
+	"go_api/internal/storage/sqlite"
 	"go_api/pkg/config"
 	"go_api/pkg/logger"
-	"go_api/pkg/storage/sqlite"
 	"log/slog"
 	"os"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 )
 
 
@@ -26,7 +29,11 @@ func main() {
 
 	log.Info("Database connected")
 
+	router := chi.NewRouter()
 
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
 }
 
 

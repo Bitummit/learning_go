@@ -3,7 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"errors"
-	"go_api/pkg/storage"
+	"go_api/internal/storage"
 
 	"github.com/mattn/go-sqlite3"
 )
@@ -14,7 +14,7 @@ type Storage struct {
 }
 
 func New(storagePAth string) (*Storage, error){
-
+	
 	db, err := sql.Open("sqlite3", "./storage/storage.db")
 	if err != nil {
 		return nil, err
@@ -77,4 +77,20 @@ func (s *Storage) GetURL(alias string) (string, error) {
 	}
 
 	return URL, nil
+}
+
+func (s *Storage) DeleteURL(alias string) error {
+	stmt, err := s.db.Prepare("DELETE FROM url WHERE alias=?")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(alias)
+	if err != nil {
+		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrNoExtended(sqlite3.ErrNotFound){
+			return storage.ErrURLNotFound
+		}
+		return err
+	}
+
+	return nil
 }
