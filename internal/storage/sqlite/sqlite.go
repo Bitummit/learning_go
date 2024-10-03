@@ -62,7 +62,7 @@ func (s *Storage) SaveURL(URL string, alias string) (int64, error) {
 }
 
 func (s *Storage) GetURL(alias string) (string, error) {
-	stmt, err := s.db.Prepare("SELECT alias FROM url WHERE alias=?")
+	stmt, err := s.db.Prepare("SELECT url FROM url WHERE alias=?")
 	if err != nil {
 		return "", err
 	}

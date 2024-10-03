@@ -1,6 +1,7 @@
 package urltoshort
 
 import (
+	"errors"
 	"go_api/internal/storage"
 	"go_api/internal/utils"
 	"go_api/pkg/handler_utils"
@@ -9,10 +10,10 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
-
 )
 
 type NewAliasRequest struct {
@@ -38,7 +39,7 @@ func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFu
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
 			log.Error("failed to decode request body", logger.Err(err))
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, handler_utils.Error("failed to decode request"))
 	
 			return
@@ -49,7 +50,7 @@ func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFu
 			validErr := err.(validator.ValidationErrors)
 
 			log.Error("invalid request", logger.Err(err))
-			w.WriteHeader(400)
+			w.WriteHeader(http.StatusBadRequest)
 			render.JSON(w, r, validErr)
 
 			return
@@ -63,7 +64,7 @@ func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFu
 		all_aliases, err := queryTool.GetAllAliases()
 		if err != nil {
 			log.Error("Can not fetch all aliases", logger.Err(err))
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, handler_utils.Error("Db query error"))
 			
 			return
@@ -76,14 +77,14 @@ func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFu
 		id, err := queryTool.SaveURL(req.URL, generatedAlias)
 		if err != nil {
 			log.Error("Failed to create create new url in DB", logger.Err(err))
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			render.JSON(w, r, handler_utils.Error("failed to save url"))
 			
 			return
 		}
 		
 		log.Info("Created new url", slog.Int64("id", id))
-
+		w.WriteHeader(http.StatusCreated)
 		render.JSON(w, r, NewAliasResponse{
 			Response: handler_utils.OK(),
 			Alias: generatedAlias,
@@ -91,4 +92,47 @@ func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFu
 
 	}
 }
+
+
+type RedirectAliasResponse struct {
+	Response handler_utils.Response
+}
+
+
+func RedirectAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const place = "handlers.redirectAlias"
+		// log = log.With(
+		// 	slog.String("handler", place),
+		// 	slog.String("request_id", middleware.GetReqID(r.Context())),
+		// )
+	
+		alias := chi.URLParam(r, "alias")
+		if alias == "" {
+			log.Info("alias is empty")
+			w.WriteHeader(http.StatusBadRequest)
+			render.JSON(w, r, handler_utils.Error("alias not found"))
+			return
+		}
+
+		URL, err := queryTool.GetURL(alias)
+		if err != nil {
+			if errors.Is(err, storage.ErrURLNotFound) {
+				log.Error("no such url", logger.Err(err))
+				w.WriteHeader(http.StatusBadRequest)
+				render.JSON(w, r, handler_utils.Error("no such url"))
+				return
+			}
+			log.Error("Failed to get url from db", logger.Err(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			render.JSON(w, r, handler_utils.Error("failed to get url from db"))
+		}
+
+		log.Info("Got url", slog.String("url", URL))
+
+		http.Redirect(w, r, URL, http.StatusFound)
+
+	}
+}
+
 

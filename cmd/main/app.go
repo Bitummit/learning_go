@@ -40,6 +40,8 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	router.Post("/url", urltoshort.NewAlias(log, storage))
+	router.Get("/{alias}", urltoshort.RedirectAlias(log, storage))
+
 
 	log.Info("Starting server", slog.String("address", cfg.Address))
 
@@ -54,6 +56,8 @@ func main() {
 	err = srv.ListenAndServe(); if err != nil {
 		log.Error("failed to start server")
 	}
+
+	log.Error("Server stopped")
 
 }
 
