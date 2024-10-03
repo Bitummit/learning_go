@@ -5,6 +5,7 @@ import "errors"
 type QueryFunctions interface {
 	SaveURL(string, string) (int64, error)
 	GetURL(string) (string, error)
+	GetAllAliases() ([]string, error)
 	DeleteURL(string) error
 }
 

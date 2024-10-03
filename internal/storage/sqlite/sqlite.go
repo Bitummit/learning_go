@@ -94,3 +94,27 @@ func (s *Storage) DeleteURL(alias string) error {
 
 	return nil
 }
+
+func (s *Storage) GetAllAliases() ([]string, error){
+	var aliases []string
+
+	rows, err := s.db.Query("SELECT alias FROM url")
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var alias string
+		err = rows.Scan(&alias)
+		if err != nil {
+			return nil, err
+		}
+
+		aliases = append(aliases, string(alias))
+
+	}
+	return aliases, nil
+
+}
