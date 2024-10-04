@@ -65,8 +65,11 @@ func main() {
 
 }
 
+
+// To run migarions: goose -dir storage/migrations postgres "postgresql://user:password@host:port/db_name" up
+
 // TODO: postgres - done
-// TODO: get url list
-// TODO: migrations
+// TODO: get url list - done
+// TODO: migrations - done
 // TODO: docker
 // TODO: gRPC
