@@ -23,7 +23,7 @@ type HTTPServer struct {
 
 func MustLoad() *Config{
 	if err := godotenv.Load(); err != nil {
-        log.Print("No .env file found")
+        log.Print("No .env file found", err)
     }
 
 	configPath := os.Getenv("CONFIG_PATH")

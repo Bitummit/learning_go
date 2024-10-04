@@ -1,8 +1,10 @@
 package main
 
 import (
-	"go_api/internal/storage/sqlite"
-	urltoshort "go_api/internal/url_to_short"
+	"context"
+	"go_api/internal/storage/postgresql"
+	// "go_api/internal/storage/sqlite"
+	// urltoshort "go_api/internal/url_to_short"
 	"go_api/pkg/config"
 	"go_api/pkg/logger"
 	"log/slog"
@@ -22,7 +24,9 @@ func main() {
 
 
 	log.Info("Database connecting ...")
-	storage, err := sqlite.New(cfg.StoragePath)
+	ctx := context.Background()
+	_, err := postgresql.NewConnectionPool(ctx)
+	// storage, err := sqlite.New(cfg.StoragePath)
 	
 	if err != nil {
 		log.Error("Faled to connect to storage", logger.Err(err))
@@ -39,8 +43,8 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/url", urltoshort.NewAlias(log, storage))
-	router.Get("/{alias}", urltoshort.RedirectAlias(log, storage))
+	// router.Post("/url", urltoshort.NewAlias(log, storage))
+	// router.Get("/{alias}", urltoshort.RedirectAlias(log, storage))
 
 
 	log.Info("Starting server", slog.String("address", cfg.Address))
@@ -61,4 +65,8 @@ func main() {
 
 }
 
-
+// TODO: postgres
+// TODO: get url list
+// TODO: migrations
+// TODO: docker
+// TODO: gRPC
