@@ -136,4 +136,33 @@ func RedirectAlias(log *slog.Logger, queryTool storage.QueryFunctionsWithContext
 	}
 }
 
+type URLListResponse struct {
+	Response handler_utils.Response
+	URLS []storage.URL
+}
 
+func GetAllURLs(log *slog.Logger, queryTool storage.QueryFunctionsWithContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		const place = "handlers.allURLs"
+		log = log.With(
+			slog.String("handler", place),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
+		)
+
+		URLs, err := queryTool.GetURLList(context.TODO())
+		if err != nil {
+			log.Error("Error while query data", logger.Err(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			render.JSON(w, r, handler_utils.Error("error on fetching data"))
+			return
+		}
+
+		resp := URLListResponse{
+			Response: handler_utils.OK(),
+			URLS: URLs,
+		}
+
+		w.WriteHeader(http.StatusOK)
+		render.JSON(w, r, resp)
+	}	
+}

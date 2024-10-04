@@ -41,8 +41,10 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
+	router.Get("/url", urltoshort.GetAllURLs(log, storage))
 	router.Post("/url", urltoshort.NewAlias(log, storage))
 	router.Get("/{alias}", urltoshort.RedirectAlias(log, storage))
+	
 
 
 	log.Info("Starting server", slog.String("address", cfg.Address))
