@@ -26,18 +26,6 @@ func NewConnectionPool(ctx context.Context) (*Storage, error) {
 		return nil, err
 	}
 
-	_, err = db.Exec(ctx, `
-	CREATE TABLE IF NOT EXISTS url (
-		id SERIAL PRIMARY KEY,
-		url VARCHAR(256) NOT NULL,
-		alias VARCHAR(256) NOT NULL UNIQUE
-		);
-	CREATE INDEX IF NOT EXISTS idx_alias ON url(alias);
-	`)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Storage{DB:db}, nil
 
 }
