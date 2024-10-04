@@ -1,6 +1,9 @@
 package storage
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 type URL struct {
 	id int64
@@ -14,6 +17,13 @@ type QueryFunctions interface {
 	GetURL(string) (string, error)
 	GetAllAliases() ([]string, error)
 	DeleteURL(string) error
+}
+
+type QueryFunctionsWithContext interface {
+	SaveURL(context.Context, string, string) (int64, error)
+	GetURL(context.Context, string) (string, error)
+	GetAllAliases(context.Context) ([]string, error)
+	DeleteURL(context.Context, string) error
 }
 
 

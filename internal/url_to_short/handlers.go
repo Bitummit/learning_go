@@ -1,6 +1,7 @@
 package urltoshort
 
 import (
+	"context"
 	"errors"
 	"go_api/internal/storage"
 	"go_api/internal/utils"
@@ -26,7 +27,7 @@ type NewAliasResponse struct {
 }
 
 
-func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFunc {
+func NewAlias(log *slog.Logger, queryTool storage.QueryFunctionsWithContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const place = "handlers.newAlias"
 		log = log.With(
@@ -61,7 +62,7 @@ func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFu
 
 		generatedAlias := utils.NewRandomString(aliasLength)
 
-		all_aliases, err := queryTool.GetAllAliases()
+		all_aliases, err := queryTool.GetAllAliases(context.TODO())
 		if err != nil {
 			log.Error("Can not fetch all aliases", logger.Err(err))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -74,7 +75,7 @@ func NewAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFu
 			generatedAlias = utils.NewRandomString(aliasLength)
 		}
 
-		id, err := queryTool.SaveURL(req.URL, generatedAlias)
+		id, err := queryTool.SaveURL(context.TODO(), req.URL, generatedAlias)
 		if err != nil {
 			log.Error("Failed to create create new url in DB", logger.Err(err))
 			w.WriteHeader(http.StatusInternalServerError)
@@ -99,7 +100,7 @@ type RedirectAliasResponse struct {
 }
 
 
-func RedirectAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.HandlerFunc {
+func RedirectAlias(log *slog.Logger, queryTool storage.QueryFunctionsWithContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const place = "handlers.redirectAlias"
 		// log = log.With(
@@ -115,7 +116,7 @@ func RedirectAlias(log *slog.Logger, queryTool storage.QueryFunctions) http.Hand
 			return
 		}
 
-		URL, err := queryTool.GetURL(alias)
+		URL, err := queryTool.GetURL(context.TODO(), alias)
 		if err != nil {
 			if errors.Is(err, storage.ErrURLNotFound) {
 				log.Error("no such url", logger.Err(err))
