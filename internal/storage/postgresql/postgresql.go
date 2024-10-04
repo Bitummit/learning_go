@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"go_api/internal/storage"
 	"os"
 	"time"
 
@@ -113,4 +114,28 @@ func (s *Storage) DeleteURL(ctx context.Context, alias string) error {
 	
 	return err
 
+}
+
+
+func (s *Storage) GetURLList(ctx context.Context) ([]storage.URL, error) {
+	var URLs []storage.URL
+	query := `
+		SELECT * FROM url;
+	`
+	rows, err := s.DB.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var URL storage.URL
+		err := rows.Scan(&URL.Id, &URL.Long_url, &URL.Alias)
+		if err != nil {
+			return nil, err
+		}
+		URLs = append(URLs, URL)
+	}
+
+	return URLs, nil
 }

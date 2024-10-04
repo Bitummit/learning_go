@@ -6,9 +6,9 @@ import (
 )
 
 type URL struct {
-	id int64
-	long_url string
-	aslias string
+	Id int64
+	Long_url string
+	Alias string
 }
 
 
@@ -24,6 +24,7 @@ type QueryFunctionsWithContext interface {
 	GetURL(context.Context, string) (string, error)
 	GetAllAliases(context.Context) ([]string, error)
 	DeleteURL(context.Context, string) error
+	GetURLList(context.Context) ([]URL, error),
 }
 
 
